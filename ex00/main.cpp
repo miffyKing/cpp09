@@ -19,8 +19,7 @@ int main(int argc, char **argv)
     if (!rate_db.is_open())
       std::cout << "Error: could not open file.";
 
-      bitExchanger.factored_price(rate_db);
-
+    bitExchanger.factored_price(rate_db);
   }
   catch (const std::exception &e)
   {

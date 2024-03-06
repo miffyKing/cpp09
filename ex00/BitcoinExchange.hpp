@@ -67,6 +67,10 @@ private:
 	Prices serialize(std::istream &ifs);
 	void delim(std::istream &is, std::string fmt);
 
+	int myStoi(const std::string& str);
+	double myStod(const std::string& str);
+
+
 	Prices prices;
 };
 

@@ -44,11 +44,11 @@ BitcoinExchange::Prices BitcoinExchange::serialize(
     std::getline(dateStream, dayPart);        // 남은 부분(일)을 dayPart에 저장
 
     Date date;
-    date.year = std::stoi(yearPart);   // 문자열을 정수로 변환하여 년도 저장
-    date.month = std::stoi(monthPart); // 문자열을 정수로 변환하여 월 저장
-    date.day = std::stoi(dayPart);     // 문자열을 정수로 변환하여 일 저장
+    date.year = myStoi(yearPart);   // 문자열을 정수로 변환하여 년도 저장
+    date.month = myStoi(monthPart); // 문자열을 정수로 변환하여 월 저장
+    date.day = myStoi(dayPart);     // 문자열을 정수로 변환하여 일 저장
 
-    double price = std::stod(pricePart); // 문자열을 double로 변환하여 가격 저장
+    double price = myStod(pricePart); // 문자열을 double로 변환하여 가격 저장
 
     if (price < 0)
       throw BadDbException(); // 가격이 음수인 경우 예외 처리
@@ -77,17 +77,27 @@ void BitcoinExchange::factored_price(
   {
     try
     {
-      std::stringstream ss(line);
+      std::string dateStr, priceStr;
 
+      // ' | '를 기준으로 날짜와 가격 부분을 분리합니다.
+      size_t delimPos = line.find(" | ");
+      if (delimPos == std::string::npos)
+        throw BadInputException(); // 구분자가 없으면 예외를 던집니다.
+
+      dateStr = line.substr(0, delimPos);
+      priceStr = line.substr(delimPos + 3);
+
+      // 날짜 파싱
+      std::istringstream dateStream(dateStr);
       Date date;
-      double price;
+      char delim;
+      dateStream >> date.year >> delim >> date.month >> delim >> date.day;
+      if (dateStream.fail())
+        throw BadInputException(); // 날짜 파싱 실패 시 예외 처리
 
-      ss >> date;
-      delim(ss, " | ");
-      ss >> price;
+      // 가격 파싱
+      double price = std::stod(priceStr); // 문자열을 double로 변환
 
-      if (ss.fail())
-        throw BadInputException();
       if (price < 0)
         throw NotPositiveNumberException();
       if (price > 1000)
@@ -126,6 +136,33 @@ void BitcoinExchange::delim(std::istream &is, std::string fmt)
     if (is.get() != *it)
       throw BadInputException();
   }
+}
+
+int BitcoinExchange::myStoi(const std::string &str)
+{
+  std::istringstream iss(str);
+  int result;
+  iss >> result;
+  if (iss.fail())
+  {
+    // 오류 처리: 변환 실패
+    throw std::runtime_error("Conversion failed");
+  }
+  return result;
+}
+
+// 문자열에서 double로 변환
+double BitcoinExchange::myStod(const std::string &str)
+{
+  std::istringstream iss(str);
+  double result;
+  iss >> result;
+  if (iss.fail())
+  {
+    // 오류 처리: 변환 실패
+    throw std::runtime_error("Conversion failed");
+  }
+  return result;
 }
 
 // 예외 what() 구현
