@@ -70,10 +70,13 @@ void BitcoinExchange::checkInput(char *file)
     i = 0;
     while (getline(readfile, oneline))
     {
-      if (i == 0 && oneline != "date | value")
-        throw std::runtime_error("Error: invalid header.");
-
-      checkValidity(oneline);
+      if (i == 0)
+      {
+        if (oneline != "date | value")
+          throw std::runtime_error("Error: invalid header.");
+      }
+      else
+        checkValidity(oneline);
       i++;
     }
   }
