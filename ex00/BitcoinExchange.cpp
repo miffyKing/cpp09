@@ -30,6 +30,7 @@ void BitcoinExchange::makeMap()
   float price;
 
   csv.open("data.csv");
+
   if (csv.is_open())
   {
     i = 0;
@@ -54,27 +55,25 @@ void BitcoinExchange::makeMap()
 void BitcoinExchange::executeExchange(char *file)
 {
   makeMap();
-  checkInputFile(file);
+  checkInput(file);
 }
 
-void BitcoinExchange::checkInputFile(char *file)
+void BitcoinExchange::checkInput(char *file)
 {
   std::ifstream readfile;
-  std::string read;
+  std::string oneline;
   int i;
 
   readfile.open(file);
   if (readfile.is_open())
   {
     i = 0;
-    while (getline(readfile, read))
+    while (getline(readfile, oneline))
     {
-      if (i == 0 && read != "date | value")
+      if (i == 0 && oneline != "date | value")
         throw std::runtime_error("Error: invalid header.");
-      else if (i > 0)
-      {
-        checkValidInfo(read);
-      }
+
+      checkValidity(oneline);
       i++;
     }
   }
@@ -82,111 +81,186 @@ void BitcoinExchange::checkInputFile(char *file)
     throw std::runtime_error("Error: could not open file.");
 }
 
-void BitcoinExchange::checkValidInfo(std::string line)
+float simpleAtof(const char *str)
 {
-  std::istringstream str(line);
-  std::string s;
-  std::string date;
-  float value;
-  int i;
+  float result = 0.0;
+  float fractionFactor = 1.0;
+  bool isFraction = false;
+  bool negative = false;
 
-  i = 0;
-  while (std::getline(str, s, ' '))
+  // Check for negative numbers
+  if (*str == '-')
   {
-    if (i == 0)
-    {
-      if (!checkDate(s))
-        return;
-      date = s;
-    }
-    else if (i == 1 && s != "|")
-    {
-      std::cout << "Error: bad input => " << line << std::endl;
-      return;
-    }
-    else if (i == 2)
-    {
-      value = std::atof(s.c_str());
-      if (!checkValue(s, value))
-        return;
-    }
-    i++;
+    negative = true;
+    ++str;
   }
-  if (i != 3)
+
+  while (*str != '\0')
   {
-    std::cout << "Error: bad input => " << s << std::endl;
+    if (*str == '.')
+    {
+      if (isFraction)
+      {
+        // Second decimal point, invalid format
+        break;
+      }
+      isFraction = true;
+    }
+    else if (std::isdigit(*str))
+    {
+      if (isFraction)
+      {
+        fractionFactor *= 0.1;
+        result += (*str - '0') * fractionFactor;
+      }
+      else
+      {
+        result = result * 10.0 + (*str - '0');
+      }
+    }
+    else
+    {
+      // Invalid character
+      break;
+    }
+    ++str;
+  }
+
+  if (negative)
+  {
+    result = -result;
+  }
+
+  return result;
+}
+
+void BitcoinExchange::checkValidity(std::string line)
+{
+
+  std::istringstream str(line);
+  std::string tokens[3]; // 토큰을 저장할 배열
+  std::string token;
+  int tokenCount = 0;
+
+  // 공백으로 문자열 분리하면서 배열에 토큰 저장
+  while (std::getline(str, token, ' ') && tokenCount < 3)
+  {
+    tokens[tokenCount++] = token;
+  }
+
+  // 토큰의 개수 검증과 '|' 기호 검사
+  if (tokenCount != 3 || tokens[1] != "|")
+  {
+    std::cout << "Error: bad input => " << line << std::endl;
     return;
   }
+
+  // 스트림에 더 이상 읽을 데이터가 남아있는지 확인
+  std::string remaining;
+  if (str >> remaining)
+  { // 추가 데이터가 있다면 에러 처리
+    std::cout << "Error: too many arguments => " << line << std::endl;
+    return;
+  }
+
+  std::string &date = tokens[0];
+
+  // float value = stringToFloat(tokens[2]);
+  // float value = std::atof(tokens[2].c_str());
+  float value = simpleAtof(tokens[2].c_str());
+
+  // 날짜 유효성 검사
+  if (!checkDate(date))
+  {
+    return; // checkDate 내부에서 오류 메시지 출력
+  }
+  if (!checkValue(tokens[2], value))
+  {
+    return; // checkValue 내부에서 오류 메시지 출력
+  }
+  // 날짜와 값이 모두 유효한 경우 처리
   printLine(date, value);
+}
+
+bool BitcoinExchange::checkNumber2(const std::string &s)
+{
+  for (std::string::size_type i = 0; i < s.length(); ++i)
+  {
+    if (!std::isdigit(s[i]))
+      return false;
+  }
+  return true;
+}
+
+// 문자열을 정수로 변환하는 함수
+int BitcoinExchange::stringToInt(const std::string &s)
+{
+  std::istringstream iss(s);
+  int result;
+  iss >> result;
+  if (iss.fail() || !iss.eof())
+  {
+    throw std::runtime_error("Conversion failed");
+  }
+  return result;
+}
+
+bool BitcoinExchange::isLeapYear(int year)
+{
+  return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+
+// 각 월의 최대 일수를 확인
+bool BitcoinExchange::isValidDay(int year, int month, int day)
+{
+  if (day < 1)
+    return false;
+  if (month == 2)
+  {
+    return isLeapYear(year) ? day <= 29 : day <= 28;
+  }
+  if (month == 4 || month == 6 || month == 9 || month == 11)
+  {
+    return day <= 30;
+  }
+  return day <= 31;
 }
 
 bool BitcoinExchange::checkDate(std::string date)
 {
   std::istringstream str(date);
   std::string date_line;
-  int year;
-  int month;
-  int day;
-  int i;
-  if (date.size() != 10)
+
+  if (date.size() != 10 || date[4] != '-' || date[7] != '-')
   {
     std::cout << "Error: bad input => " << date << std::endl;
-    return (0);
+    return false;
   }
-  else if (date.find('-') != 4 || date.find('-', 7) != 7)
+
+  std::string yearStr = date.substr(0, 4);
+  std::string monthStr = date.substr(5, 2);
+  std::string dayStr = date.substr(8, 2);
+
+  if (!checkNumber2(yearStr) || !checkNumber2(monthStr) || !checkNumber2(dayStr))
   {
     std::cout << "Error: bad input => " << date << std::endl;
-    return (0);
+    return false;
   }
-  i = 0;
-  while (std::getline(str, date_line, '-'))
+
+  int year = stringToInt(yearStr);
+  int month = stringToInt(monthStr);
+  int day = stringToInt(dayStr);
+
+  if (month < 1 || month > 12)
   {
-    if (i == 0)
-    {
-      year = std::atof(date_line.c_str());
-      if (date_line.length() != 4 || year < 2009 || year > 2023)
-      {
-        std::cout << "Error: bad input => " << date << std::endl;
-        return (0);
-      }
-    }
-    else if (i == 1)
-    {
-      month = std::atof(date_line.c_str());
-      if (date_line.length() != 2 || month < 1 || month > 12)
-      {
-        std::cout << "Error: bad input => " << date << std::endl;
-        return (0);
-      }
-    }
-    else if (i == 2)
-    {
-      day = std::atof(date_line.c_str());
-      if (date_line.length() != 2 || day < 1 || day > 31)
-      {
-        std::cout << "Error: bad input => " << date << std::endl;
-        return (0);
-      }
-      if (month == 2)
-      {
-        if (day > 29)
-        {
-          std::cout << "Error: bad input => " << date << std::endl;
-          return (0);
-        }
-        if (day == 29 && !(year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)))
-        {
-          std::cout << "Error: bad input => " << date << std::endl;
-          return (0);
-        }
-      }
-      if (day == 31 && (month == 4 || month == 6 || month == 9 || month == 11))
-      {
-        std::cout << "Error: bad input => " << date << std::endl;
-        return (0);
-      }
-    }
-    i++;
+    std::cout << "Error: invalid month => " << date << std::endl;
+    return false;
+  }
+
+  if (!isValidDay(year, month, day))
+  {
+    std::cout << "Error: invalid day => " << date << std::endl;
+    return false;
   }
   return (1);
 }

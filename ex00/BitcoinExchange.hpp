@@ -14,14 +14,19 @@ private:
 	BitcoinExchange &operator=(const BitcoinExchange &ref);
 
 	std::map<std::string, float> data_map;
-	void checkInputFile(char *file);
-	void checkValidInfo(std::string line);
+	void checkInput(char *file);
+	void checkValidity(std::string line);
 	bool checkDate(std::string date);
 	bool checkValue(std::string value, float f);
 	bool isNumber(std::string value, float f);
 	void printLine(std::string date, float value);
 	float getValue(std::string date);
 	void makeMap();
+	bool checkNumber2(const std::string &s);
+	int stringToInt(const std::string &s);
+	// float stringToFloat(const std::string &s);
+	bool isLeapYear(int year);
+	bool isValidDay(int y, int m, int d);
 
 public:
 	BitcoinExchange();
