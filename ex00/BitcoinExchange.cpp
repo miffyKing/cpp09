@@ -24,25 +24,25 @@ BitcoinExchange::~BitcoinExchange()
 void BitcoinExchange::makeMap()
 {
   std::ifstream csv;
-  std::string read;
+  std::string oneline;
   int i;
-  size_t size;
-  float f;
+  size_t commalocation;
+  float price;
 
   csv.open("data.csv");
   if (csv.is_open())
   {
     i = 0;
-    while (getline(csv, read))
+    while (getline(csv, oneline))
     {
-      if (i == 0 && read != "date,exchange_rate")
+      if (i == 0 && oneline != "date,exchange_rate")
         throw std::runtime_error("Error: invalid header.");
       else if (i > 0)
       {
-        size = read.find(',');
-        std::istringstream str(read.substr(size + 1, read.length()));
-        str >> f;
-        data_map[read.substr(0, size)] = f;
+        commalocation = oneline.find(',');
+        std::istringstream str(oneline.substr(commalocation + 1, oneline.length()));
+        str >> price;
+        data_map[oneline.substr(0, commalocation)] = price;
       }
       i++;
     }
@@ -54,7 +54,6 @@ void BitcoinExchange::makeMap()
 void BitcoinExchange::executeExchange(char *file)
 {
   makeMap();
-
   checkInputFile(file);
 }
 
