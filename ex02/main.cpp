@@ -34,11 +34,11 @@ int main(int argc, char **argv)
     std::cout << std::endl;
 
     std::clock_t v_start = std::clock();
-    pm._vector = pm.fordjohnson_vector(pm._vector);
+    pm._vector = pm._fordjohnson_vector(pm._vector);
     std::clock_t v_end = std::clock();
 
     std::clock_t d_start = std::clock();
-    pm._deque = pm.fordjohnson_deque(pm._deque);
+    pm._deque = pm._fordjohnson_deque(pm._deque);
     std::clock_t d_end = std::clock();
 
     std::cout << "After(vector): ";

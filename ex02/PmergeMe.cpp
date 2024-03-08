@@ -23,20 +23,20 @@ void PmergeMe::fillContainer(int n)
     _deque.push_back(n);
 }
 
-bool PmergeMe::_isEqual(const std::pair<int, int> &e, int val)
-{
-    return e.first == val;
-}
-
-size_t PmergeMe::_getIndex(int k)
+size_t PmergeMe::_get_jacobsthal_index(int k)
 {
     if (k == 1 || k == 0)
         return 1;
-    return (std::pow(2, k + 1) + std::pow(-1, k)) / 3;
+    int sorted = std::pow(2, k + 1) + std::pow(-1, k) / 3;
+    return sorted;
 }
 
-void PmergeMe::_seperate_vector(std::vector<int> &vec, std::vector<int> &large, std::vector<int> &small)
+void PmergeMe::_generate_small_large(std::vector<int> &vec, std::vector<int> &large, std::vector<int> &small)
 {
+    size_t half_size = vec.size() / 2;
+    small.reserve(half_size + 1);
+    large.reserve(half_size);
+
     for (size_t i = 0; i < vec.size() - 1; i += 2)
     {
         if (vec[i] < vec[i + 1])
@@ -54,68 +54,50 @@ void PmergeMe::_seperate_vector(std::vector<int> &vec, std::vector<int> &large, 
         small.push_back(vec[vec.size() - 1]);
 }
 
-std::vector<int> PmergeMe::fordjohnson_vector(std::vector<int> &vec)
+std::vector<int> PmergeMe::_fordjohnson_vector(std::vector<int> &vec)
 {
     if (vec.size() == 1)
         return vec;
-    std::vector<int> ret;
+    std::vector<int> sorted;
     std::vector<int> large;
     std::vector<int> small;
 
-    std::vector<std::pair<int, int> > pairs;
+    std::vector<std::pair<int, int>> pairs;
 
-    _seperate_vector(vec, large, small);
+    _generate_small_large(vec, large, small);
 
     for (size_t i = 0; i < large.size(); i++)
         pairs.push_back(std::make_pair(large[i], small[i]));
     if (large.size() < small.size())
         pairs.push_back(std::make_pair(0, small[small.size() - 1]));
 
-    large = fordjohnson_vector(large);
-
-    // std::cout<<" pairs size is " << pairs.size() << "\n";
+    large = _fordjohnson_vector(large);
 
     for (size_t i = 0; i < pairs.size(); i++)
     {
         std::pair<int, int> &p = pairs[i];
         for (size_t j = 0; j < large.size(); j++)
-            if (_isEqual(p, large[j]))
+            if (p.first == large[j])
                 small[j] = p.second;
     }
 
-    ////////////////////
+    sorted.push_back(small[0]);
 
-    ret.push_back(small[0]);
-
-    // std::cout<<"LARGE : ";
-    // for (int i = 0; i < (int)large.size(); i++)
-    // {
-    //     std::cout<< large[i] << " ";
-    // } std::cout<<"\n";
-    // std::cout<< "SMALL : ";
-    // for (int i = 0; i < (int)small.size(); i++)
-    // {
-    //     std::cout<< small[i] << " ";
-    // } std::cout<<"\n";
-
-    for (size_t i = 0; i < large.size(); i++)
-        ret.push_back(large[i]);
+    sorted.insert(sorted.end(), large.begin(), large.end());
 
     int k = 2;
 
-    while (_getIndex(k - 1) <= large.size())
+    while (_get_jacobsthal_index(k - 1) <= large.size())
     {
-        int m = std::min(_getIndex(k) - 1, small.size() - 1);
-        for (size_t i = m; i > _getIndex(k - 1) - 1; i--)
+        int m = std::min(_get_jacobsthal_index(k) - 1, small.size() - 1);
+        for (size_t i = m; i > _get_jacobsthal_index(k - 1) - 1; i--)
         {
-            _binaryInsert(ret, small[i]);
+            _binaryInsert(sorted, small[i]);
         }
         k += 1;
     }
-    return ret;
+    return sorted;
 }
-
-//--------------------------vector--------------------------------
 
 void PmergeMe::_seperate_deque(std::deque<int> &deq, std::deque<int> &large, std::deque<int> &small)
 {
@@ -136,45 +118,43 @@ void PmergeMe::_seperate_deque(std::deque<int> &deq, std::deque<int> &large, std
         small.push_back(deq[deq.size() - 1]);
 }
 
-std::deque<int> PmergeMe::fordjohnson_deque(std::deque<int> &deq)
+std::deque<int> PmergeMe::_fordjohnson_deque(std::deque<int> &deq)
 {
     if (deq.size() == 1)
         return deq;
-    std::deque<int> ret;
+    std::deque<int> sorted;
     std::deque<int> large;
     std::deque<int> small;
 
-    std::deque<std::pair<int, int> > pairs;
+    std::deque<std::pair<int, int>> pairs;
     _seperate_deque(deq, large, small);
     for (size_t i = 0; i < large.size(); i++)
         pairs.push_back(std::make_pair(large[i], small[i]));
     if (large.size() < small.size())
         pairs.push_back(std::make_pair(0, small[small.size() - 1]));
 
-    large = fordjohnson_deque(large);
+    large = _fordjohnson_deque(large);
 
     for (size_t i = 0; i < pairs.size(); i++)
     {
         std::pair<int, int> &p = pairs[i];
         for (size_t j = 0; j < large.size(); j++)
-            if (_isEqual(p, large[j]))
+            if (p.first == large[j])
                 small[j] = p.second;
     }
-    ret.push_back(small[0]);
+    sorted.push_back(small[0]);
 
-    for (size_t i = 0; i < large.size(); i++)
-        ret.push_back(large[i]);
+    sorted.insert(sorted.end(), large.begin(), large.end());
+
     int k = 2;
-    while (_getIndex(k - 1) <= large.size())
+    while (_get_jacobsthal_index(k - 1) <= large.size())
     {
-        int m = std::min(_getIndex(k) - 1, small.size() - 1);
-        for (size_t i = m; i > _getIndex(k - 1) - 1; i--)
+        int m = std::min(_get_jacobsthal_index(k) - 1, small.size() - 1);
+        for (size_t i = m; i > _get_jacobsthal_index(k - 1) - 1; i--)
         {
-            _binaryInsert(ret, small[i]);
+            _binaryInsert(sorted, small[i]);
         }
         k += 1;
     }
-    return ret;
+    return sorted;
 }
-
-//--------------------------deque--------------------------------
