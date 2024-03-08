@@ -89,26 +89,24 @@ void BitcoinExchange::checkValidity(std::string line)
 
   std::istringstream str(line);
   std::string tokens[3]; // 토큰을 저장할 배열
+  // vector<std::string> token 이거로 하는게 더 편한데 벡터 뒤에[ 쓰느라..
   std::string token;
   int tokenCount = 0;
 
-  // 공백으로 문자열 분리하면서 배열에 토큰 저장
   while (std::getline(str, token, ' ') && tokenCount < 3)
   {
     tokens[tokenCount++] = token;
   }
 
-  // 토큰의 개수 검증과 '|' 기호 검사
   if (tokenCount != 3 || tokens[1] != "|")
   {
     std::cout << "Error: bad input => " << line << std::endl;
     return;
   }
 
-  // 스트림에 더 이상 읽을 데이터가 남아있는지 확인
   std::string remaining;
   if (str >> remaining)
-  { // 추가 데이터가 있다면 에러 처리
+  {
     std::cout << "Error: too many arguments => " << line << std::endl;
     return;
   }
@@ -117,16 +115,14 @@ void BitcoinExchange::checkValidity(std::string line)
   // float value = stringToFloat(tokens[2]);
   float value = atof(tokens[2].c_str());
 
-  // 날짜 유효성 검사
   if (!checkDate(date))
   {
-    return; // checkDate 내부에서 오류 메시지 출력
+    return;
   }
   if (!checkValue(tokens[2], value))
   {
-    return; // checkValue 내부에서 오류 메시지 출력
+    return;
   }
-  // 날짜와 값이 모두 유효한 경우 처리
   printLine(date, value);
 }
 
@@ -158,7 +154,6 @@ bool BitcoinExchange::isLeapYear(int year)
   return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }
 
-// 각 월의 최대 일수를 확인
 bool BitcoinExchange::isValidDay(int year, int month, int day)
 {
   if (day < 1)
@@ -219,7 +214,7 @@ bool BitcoinExchange::checkDate(std::string date)
 
 bool BitcoinExchange::checkValue(std::string value, float f)
 {
-  if (!isNumber(value, f) || ((value == "0" || value == "0.0") && f != 0))
+  if (!isNumber(value, f) || ((value == "0" || value == "0.0")))
   {
     std::cout << "Error: bad input => " << value << std::endl;
     return (0);
@@ -283,7 +278,7 @@ float BitcoinExchange::getValue(std::string date)
 {
   std::map<std::string, float>::iterator it;
 
-  it = data_map.lower_bound(date);
+  it = data_map.lower_bound(date); // date 랑 같은거 있으면 같은거, 없으면 그거보다 큰 값 중 첫번째 리턴
   if (it == data_map.end() || it->first != date)
   {
     --it;
