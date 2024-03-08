@@ -1,5 +1,5 @@
-
 #include "BitcoinExchange.hpp"
+#include <cstdlib>
 
 BitcoinExchange::BitcoinExchange()
 {
@@ -23,11 +23,11 @@ BitcoinExchange::~BitcoinExchange()
 
 void BitcoinExchange::executeExchange(char *file)
 {
-  makeMap();
+  generateMap();
   checkInput(file);
 }
 
-void BitcoinExchange::makeMap()
+void BitcoinExchange::generateMap()
 {
   std::ifstream csv;
   std::string oneline;
@@ -115,7 +115,7 @@ void BitcoinExchange::checkValidity(std::string line)
 
   std::string &date = tokens[0];
   // float value = stringToFloat(tokens[2]);
-  float value = std::atof(tokens[2].c_str());
+  float value = atof(tokens[2].c_str());
 
   // 날짜 유효성 검사
   if (!checkDate(date))

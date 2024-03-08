@@ -21,7 +21,7 @@ private:
 	bool isNumber(std::string value, float f);
 	void printLine(std::string date, float value);
 	float getValue(std::string date);
-	void makeMap();
+	void generateMap();
 	bool checkNumber2(const std::string &s);
 	int stringToInt(const std::string &s);
 	bool isLeapYear(int year);
