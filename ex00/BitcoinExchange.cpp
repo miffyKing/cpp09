@@ -21,6 +21,12 @@ BitcoinExchange::~BitcoinExchange()
 {
 }
 
+void BitcoinExchange::executeExchange(char *file)
+{
+  makeMap();
+  checkInput(file);
+}
+
 void BitcoinExchange::makeMap()
 {
   std::ifstream csv;
@@ -52,12 +58,6 @@ void BitcoinExchange::makeMap()
     throw std::runtime_error("Error: could not open file.");
 }
 
-void BitcoinExchange::executeExchange(char *file)
-{
-  makeMap();
-  checkInput(file);
-}
-
 void BitcoinExchange::checkInput(char *file)
 {
   std::ifstream readfile;
@@ -82,59 +82,6 @@ void BitcoinExchange::checkInput(char *file)
   }
   else
     throw std::runtime_error("Error: could not open file.");
-}
-
-float simpleAtof(const char *str)
-{
-  float result = 0.0;
-  float fractionFactor = 1.0;
-  bool isFraction = false;
-  bool negative = false;
-
-  // Check for negative numbers
-  if (*str == '-')
-  {
-    negative = true;
-    ++str;
-  }
-
-  while (*str != '\0')
-  {
-    if (*str == '.')
-    {
-      if (isFraction)
-      {
-        // Second decimal point, invalid format
-        break;
-      }
-      isFraction = true;
-    }
-    else if (std::isdigit(*str))
-    {
-      if (isFraction)
-      {
-        fractionFactor *= 0.1;
-        result += (*str - '0') * fractionFactor;
-      }
-      else
-      {
-        result = result * 10.0 + (*str - '0');
-      }
-    }
-    else
-    {
-      // Invalid character
-      break;
-    }
-    ++str;
-  }
-
-  if (negative)
-  {
-    result = -result;
-  }
-
-  return result;
 }
 
 void BitcoinExchange::checkValidity(std::string line)
@@ -167,10 +114,8 @@ void BitcoinExchange::checkValidity(std::string line)
   }
 
   std::string &date = tokens[0];
-
   // float value = stringToFloat(tokens[2]);
-  // float value = std::atof(tokens[2].c_str());
-  float value = simpleAtof(tokens[2].c_str());
+  float value = std::atof(tokens[2].c_str());
 
   // 날짜 유효성 검사
   if (!checkDate(date))
@@ -259,7 +204,11 @@ bool BitcoinExchange::checkDate(std::string date)
     std::cout << "Error: invalid month => " << date << std::endl;
     return false;
   }
-
+  if (year < 2009 || year > 2023)
+  {
+    std::cout << "Error: invalid year => " << date << std::endl;
+    return false;
+  }
   if (!isValidDay(year, month, day))
   {
     std::cout << "Error: invalid day => " << date << std::endl;
@@ -285,6 +234,16 @@ bool BitcoinExchange::checkValue(std::string value, float f)
     std::cout << "Error: not a positive number." << std::endl;
     return (0);
   }
+  // string <> float 를 atof 한 결과가, 기존string 크기와 같아야 숫자 뒤에 이상한게 없었다는 것.
+  // std::ostringstream streamobj;
+  // streamobj << f;
+  // std::string fToStr = streamobj.str();
+  // if (fToStr.size() != value.size())
+  // {
+  //   std::cout << "value is not correct" << fToStr << "\n";
+  //   return 0;
+  // }
+
   return (1);
 }
 

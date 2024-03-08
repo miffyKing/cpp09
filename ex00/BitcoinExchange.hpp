@@ -24,7 +24,6 @@ private:
 	void makeMap();
 	bool checkNumber2(const std::string &s);
 	int stringToInt(const std::string &s);
-	// float stringToFloat(const std::string &s);
 	bool isLeapYear(int year);
 	bool isValidDay(int y, int m, int d);
 
