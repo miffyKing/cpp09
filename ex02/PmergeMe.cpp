@@ -62,7 +62,7 @@ std::vector<int> PmergeMe::_fordjohnson_vector(std::vector<int> &vec)
     std::vector<int> large;
     std::vector<int> small;
 
-    std::vector<std::pair<int, int>> pairs;
+    std::vector<std::pair<int, int> > pairs;
 
     _generate_small_large(vec, large, small);
 
@@ -126,7 +126,7 @@ std::deque<int> PmergeMe::_fordjohnson_deque(std::deque<int> &deq)
     std::deque<int> large;
     std::deque<int> small;
 
-    std::deque<std::pair<int, int>> pairs;
+    std::deque<std::pair<int, int> > pairs;
     _seperate_deque(deq, large, small);
     for (size_t i = 0; i < large.size(); i++)
         pairs.push_back(std::make_pair(large[i], small[i]));
