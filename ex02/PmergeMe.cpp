@@ -134,9 +134,6 @@ std::deque<int> PmergeMe::_fordjohnson_deque(std::deque<int> &deq)
     if (deq.size() % 2 == 1)
         pairs.push_back(std::make_pair(0, small[small.size() - 1]));
 
-    // if (large.size() < small.size())
-    //     pairs.push_back(std::make_pair(0, small[small.size() - 1]));
-
     large = _fordjohnson_deque(large);
 
     for (size_t i = 0; i < pairs.size(); i++)
