@@ -68,7 +68,7 @@ std::vector<int> PmergeMe::_fordjohnson_vector(std::vector<int> &vec)
 
     for (size_t i = 0; i < large.size(); i++)
         pairs.push_back(std::make_pair(large[i], small[i]));
-    if (large.size() < small.size())
+    if (vec.size() % 2 == 1)
         pairs.push_back(std::make_pair(0, small[small.size() - 1]));
 
     large = _fordjohnson_vector(large);
@@ -92,7 +92,7 @@ std::vector<int> PmergeMe::_fordjohnson_vector(std::vector<int> &vec)
         int m = std::min(_get_jacobsthal_index(k) - 1, small.size() - 1);
         for (size_t i = m; i > _get_jacobsthal_index(k - 1) - 1; i--)
         {
-            _binaryInsert(sorted, small[i]);
+            _binaryInsertVector(sorted, small[i]);
         }
         k += 1;
     }
@@ -130,8 +130,12 @@ std::deque<int> PmergeMe::_fordjohnson_deque(std::deque<int> &deq)
     _seperate_deque(deq, large, small);
     for (size_t i = 0; i < large.size(); i++)
         pairs.push_back(std::make_pair(large[i], small[i]));
-    if (large.size() < small.size())
+    
+    if (deq.size() % 2 == 1)
         pairs.push_back(std::make_pair(0, small[small.size() - 1]));
+
+    // if (large.size() < small.size())
+    //     pairs.push_back(std::make_pair(0, small[small.size() - 1]));
 
     large = _fordjohnson_deque(large);
 
@@ -152,9 +156,20 @@ std::deque<int> PmergeMe::_fordjohnson_deque(std::deque<int> &deq)
         int m = std::min(_get_jacobsthal_index(k) - 1, small.size() - 1);
         for (size_t i = m; i > _get_jacobsthal_index(k - 1) - 1; i--)
         {
-            _binaryInsert(sorted, small[i]);
+            _binaryInsertDeque(sorted, small[i]);
         }
         k += 1;
     }
     return sorted;
+}
+
+void PmergeMe::_binaryInsertVector(std::vector<int> &v, const int &a)
+{
+    std::vector<int>::iterator it = std::lower_bound(v.begin(), v.end(), a);
+    v.insert(it, a);
+}
+void PmergeMe::_binaryInsertDeque(std::deque<int> &d, const int &a)
+{
+    std::deque<int>::iterator it = std::lower_bound(d.begin(), d.end(), a);
+    d.insert(it, a);
 }
